@@ -20,7 +20,11 @@ class QueueBacklogCheck implements CheckInterface
         try {
             if ($driver === 'database') {
                 $table = config('queue.connections.database.table', 'jobs');
-                $backlog = DB::table($table)->count();
+                $backlog = DB::table($table)
+                    ->where('queue', $queueName)
+                    ->where('available_at', '<=', time())
+                    ->whereNull('reserved_at')
+                    ->count();
             } elseif ($driver === 'redis') {
                 $key = 'queues:' . $queueName;
                 try {
